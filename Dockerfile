@@ -4,6 +4,5 @@ WORKDIR /app
 COPY . .
 RUN chmod +x mvnw
 RUN ./mvnw clean package -DskipTests
-COPY target/*.jar app.jar
 EXPOSE 8083
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "target/UsuariosService-0.0.1-SNAPSHOT.jar"]
