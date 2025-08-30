@@ -1,0 +1,10 @@
+target/
+.git/
+*.iml
+.idea/
+*.log
+*.md
+*.bat
+*.cmd
+*.class
+build/
