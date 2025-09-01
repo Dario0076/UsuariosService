@@ -17,6 +17,10 @@ public class UsuarioService {
         return usuarioRepository.findByActivoTrue();
     }
 
+    public boolean hasAnyUsuarios() {
+        return usuarioRepository.count() > 0;
+    }
+
     public Optional<Usuario> getUsuarioById(Long id) {
         return usuarioRepository.findById(id);
     }
