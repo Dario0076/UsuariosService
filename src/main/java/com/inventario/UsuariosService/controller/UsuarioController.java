@@ -147,6 +147,29 @@ public class UsuarioController {
         }
     }
 
+    // Endpoint público para consultas internas entre microservicios
+    @GetMapping("/internal/{id}")
+    public ResponseEntity<?> getUsuarioForInternalService(@PathVariable Long id) {
+        try {
+            Optional<Usuario> usuario = usuarioService.getUsuarioById(id);
+            if (usuario.isPresent()) {
+                Usuario u = usuario.get();
+                // Devolver solo los datos necesarios sin la contraseña
+                Map<String, Object> response = new HashMap<>();
+                response.put("id", u.getId());
+                response.put("nombre", u.getNombre());
+                response.put("correo", u.getCorreo());
+                response.put("rol", u.getRol());
+                response.put("activo", u.getActivo());
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error al buscar usuario: " + e.getMessage());
+        }
+    }
+
     // Endpoint para crear el primer admin (sin autenticación)
     @PostMapping("/init-admin")
     public ResponseEntity<?> createAdminUsuario(@RequestBody Usuario usuario) {

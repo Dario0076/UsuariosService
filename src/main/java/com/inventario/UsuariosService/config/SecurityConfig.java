@@ -36,7 +36,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable()
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/api/usuarios/login", "/api/usuarios/health", "/api/usuarios/init-admin", "/api/usuarios/first").permitAll() // Permitir endpoints públicos
+                .requestMatchers("/api/usuarios/login", "/api/usuarios/health", "/api/usuarios/init-admin", "/api/usuarios/first", "/api/usuarios/internal/**").permitAll() // Permitir endpoints públicos
                 .requestMatchers(HttpMethod.POST, "/api/usuarios").hasRole("ADMIN") // Solo ADMIN puede crear usuarios
                 .requestMatchers(HttpMethod.GET, "/api/usuarios").hasRole("ADMIN") // Solo ADMIN puede listar usuarios
                 .anyRequest().authenticated() // Todas las demás rutas requieren autenticación
