@@ -15,7 +15,7 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
     
-    private static final String SECRET = "InventarioSecretKeyForJWTTokenGenerationThatMustBeLongEnough";
+    private static final String SECRET = "InventarioSecretKeyForJWTTokenGenerationThatMustBeLongEnoughForHS512AlgorithmRequirements2025";
     private static final int JWT_TOKEN_VALIDITY = 5 * 60 * 60; // 5 horas
 
     private SecretKey getSigningKey() {

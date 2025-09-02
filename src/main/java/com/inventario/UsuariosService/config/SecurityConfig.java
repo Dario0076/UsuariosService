@@ -4,6 +4,7 @@ import com.inventario.UsuariosService.filter.JwtRequestFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -35,8 +36,9 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable()
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/usuarios/login", "/usuarios/health").permitAll() // Permitir login y health sin autenticación
-                .requestMatchers("/usuarios").hasRole("ADMIN") // Solo ADMIN puede crear usuarios
+                .requestMatchers("/api/usuarios/login", "/api/usuarios/health", "/api/usuarios/init-admin", "/api/usuarios/first").permitAll() // Permitir endpoints públicos
+                .requestMatchers(HttpMethod.POST, "/api/usuarios").hasRole("ADMIN") // Solo ADMIN puede crear usuarios
+                .requestMatchers(HttpMethod.GET, "/api/usuarios").hasRole("ADMIN") // Solo ADMIN puede listar usuarios
                 .anyRequest().authenticated() // Todas las demás rutas requieren autenticación
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

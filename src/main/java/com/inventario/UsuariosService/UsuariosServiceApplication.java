@@ -7,10 +7,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.lang.NonNull;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.inventario.UsuariosService.entity.Usuario;
-import com.inventario.UsuariosService.repository.UsuarioRepository;
 
 
 @SpringBootApplication
@@ -27,6 +23,8 @@ public class UsuariosServiceApplication {
         };
     }
 
+    // Comentado para usar el endpoint /first para crear el primer usuario
+    /*
     @Bean
     public CommandLineRunner initAdmin(@Autowired UsuarioRepository usuarioRepository) {
         return args -> {
@@ -41,6 +39,7 @@ public class UsuariosServiceApplication {
             }
         };
     }
+    */
 
     public static void main(String[] args) {
         SpringApplication.run(UsuariosServiceApplication.class, args);

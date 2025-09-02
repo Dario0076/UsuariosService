@@ -45,9 +45,44 @@ public class UsuarioController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createUsuario(@RequestBody Usuario usuario) {
         try {
+            // Verificar si el correo ya existe
+            if (usuarioService.buscarPorCorreo(usuario.getCorreo()).isPresent()) {
+                return ResponseEntity.badRequest().body("El correo ya existe");
+            }
+            
             // Encriptar la contraseña antes de guardar
             usuario.setContrasena(passwordEncoder.encode(usuario.getContrasena()));
             usuario.setActivo(true);
+            Usuario creado = usuarioService.saveUsuario(usuario);
+            
+            // No devolver la contraseña en la respuesta
+            creado.setContrasena(null);
+            return ResponseEntity.ok(creado);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al crear usuario: " + e.getMessage());
+        }
+    }
+
+    // Endpoint público para crear el primer usuario (usado por frontend legacy)
+    @PostMapping("/first")
+    public ResponseEntity<?> createFirstUsuario(@RequestBody Usuario usuario) {
+        try {
+            // Solo permite crear si no hay usuarios en el sistema
+            if (usuarioService.hasAnyUsuarios()) {
+                return ResponseEntity.status(409).body("Ya existen usuarios en el sistema");
+            }
+            
+            // Verificar si el correo ya existe
+            if (usuarioService.buscarPorCorreo(usuario.getCorreo()).isPresent()) {
+                return ResponseEntity.badRequest().body("El correo ya existe");
+            }
+            
+            // Encriptar la contraseña antes de guardar
+            usuario.setContrasena(passwordEncoder.encode(usuario.getContrasena()));
+            usuario.setActivo(true);
+            if (usuario.getRol() == null || usuario.getRol().isEmpty()) {
+                usuario.setRol("ADMIN"); // Primer usuario siempre es admin
+            }
             Usuario creado = usuarioService.saveUsuario(usuario);
             
             // No devolver la contraseña en la respuesta
@@ -65,25 +100,35 @@ public class UsuarioController {
         String contrasena = credentials.get("contrasena");
         
         try {
+            System.out.println("Intento de login para: " + correo);
+            
             Optional<Usuario> usuarioOpt = usuarioService.buscarPorCorreo(correo);
             
             if (usuarioOpt.isEmpty()) {
+                System.out.println("Usuario no encontrado: " + correo);
                 return ResponseEntity.status(401).body("Credenciales incorrectas");
             }
             
             Usuario usuario = usuarioOpt.get();
+            System.out.println("Usuario encontrado: " + usuario.getCorreo());
             
             // Verificar contraseña
             if (!passwordEncoder.matches(contrasena, usuario.getContrasena())) {
+                System.out.println("Contraseña incorrecta para: " + correo);
                 return ResponseEntity.status(401).body("Credenciales incorrectas");
             }
             
             if (!usuario.getActivo()) {
+                System.out.println("Usuario inactivo: " + correo);
                 return ResponseEntity.status(401).body("Usuario inactivo");
             }
             
+            System.out.println("Generando JWT token para: " + correo);
+            
             // Generar JWT token
             String token = jwtUtil.generateToken(usuario.getCorreo(), usuario.getNombre(), usuario.getRol());
+            
+            System.out.println("JWT token generado exitosamente");
             
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
@@ -96,7 +141,9 @@ public class UsuarioController {
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error interno del servidor");
+            System.out.println("Error en login: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error interno del servidor: " + e.getMessage());
         }
     }
 
