@@ -3,7 +3,8 @@ package com.inventario.UsuariosService.controller;
 import com.inventario.UsuariosService.entity.Usuario;
 import com.inventario.UsuariosService.service.UsuarioService;
 import com.inventario.UsuariosService.util.JwtUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,16 +17,19 @@ import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/usuarios")
-@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class UsuarioController {
-    @Autowired
-    private UsuarioService usuarioService;
-    
-    @Autowired
-    private JwtUtil jwtUtil;
-    
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private static final Logger logger = LoggerFactory.getLogger(UsuarioController.class);
+    private final UsuarioService usuarioService;
+    private final JwtUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder;
+
+    public UsuarioController(UsuarioService usuarioService, 
+                           JwtUtil jwtUtil, 
+                           PasswordEncoder passwordEncoder) {
+        this.usuarioService = usuarioService;
+        this.jwtUtil = jwtUtil;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     // Solo usuarios con rol ADMIN pueden ver la lista de usuarios
     @GetMapping
@@ -100,35 +104,35 @@ public class UsuarioController {
         String contrasena = credentials.get("contrasena");
         
         try {
-            System.out.println("Intento de login para: " + correo);
+            logger.info("Intento de login para: {}", correo);
             
             Optional<Usuario> usuarioOpt = usuarioService.buscarPorCorreo(correo);
             
             if (usuarioOpt.isEmpty()) {
-                System.out.println("Usuario no encontrado: " + correo);
+                logger.warn("Usuario no encontrado: {}", correo);
                 return ResponseEntity.status(401).body("Credenciales incorrectas");
             }
             
             Usuario usuario = usuarioOpt.get();
-            System.out.println("Usuario encontrado: " + usuario.getCorreo());
+            logger.debug("Usuario encontrado: {}", usuario.getCorreo());
             
             // Verificar contraseña
             if (!passwordEncoder.matches(contrasena, usuario.getContrasena())) {
-                System.out.println("Contraseña incorrecta para: " + correo);
+                logger.warn("Contraseña incorrecta para: {}", correo);
                 return ResponseEntity.status(401).body("Credenciales incorrectas");
             }
             
             if (!usuario.getActivo()) {
-                System.out.println("Usuario inactivo: " + correo);
+                logger.warn("Usuario inactivo: {}", correo);
                 return ResponseEntity.status(401).body("Usuario inactivo");
             }
             
-            System.out.println("Generando JWT token para: " + correo);
+            logger.debug("Generando JWT token para: {}", correo);
             
             // Generar JWT token
             String token = jwtUtil.generateToken(usuario.getCorreo(), usuario.getNombre(), usuario.getRol());
             
-            System.out.println("JWT token generado exitosamente");
+            logger.info("JWT token generado exitosamente para: {}", correo);
             
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
@@ -141,8 +145,7 @@ public class UsuarioController {
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            System.out.println("Error en login: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Error en login para {}: {}", correo, e.getMessage(), e);
             return ResponseEntity.status(500).body("Error interno del servidor: " + e.getMessage());
         }
     }

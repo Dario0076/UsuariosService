@@ -24,8 +24,11 @@ import java.util.Arrays;
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-    @Autowired
-    private JwtRequestFilter jwtRequestFilter;
+    private final JwtRequestFilter jwtRequestFilter;
+    
+    public SecurityConfig(JwtRequestFilter jwtRequestFilter) {
+        this.jwtRequestFilter = jwtRequestFilter;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -34,19 +37,18 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.cors().and().csrf().disable()
+        return http
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers("/api/usuarios/login", "/api/usuarios/health", "/api/usuarios/init-admin", "/api/usuarios/first", "/api/usuarios/internal/**").permitAll() // Permitir endpoints públicos
                 .requestMatchers(HttpMethod.POST, "/api/usuarios").hasRole("ADMIN") // Solo ADMIN puede crear usuarios
                 .requestMatchers(HttpMethod.GET, "/api/usuarios").hasRole("ADMIN") // Solo ADMIN puede listar usuarios
                 .anyRequest().authenticated() // Todas las demás rutas requieren autenticación
             )
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        // Agregar el filtro JWT antes del filtro de autenticación por usuario/contraseña
-        http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
+            .build();
     }
 
     @Bean

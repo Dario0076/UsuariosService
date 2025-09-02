@@ -16,11 +16,22 @@ public class Usuario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
+    @Column(name = "nombre", nullable = false, length = 100)
     private String nombre;
-    @Column(unique = true, nullable = false)
+    
+    @Column(name = "correo", unique = true, nullable = false, length = 100)
     private String correo;
+    
+    @Column(name = "rol", nullable = false, length = 20)
     private String rol;
+    
+    @Column(name = "contrasena", nullable = false)
     private String contrasena;
+    
+    @Column(name = "fecha_registro", nullable = false)
     private LocalDateTime fechaRegistro = LocalDateTime.now();
+    
+    @Column(name = "activo", nullable = false)
     private Boolean activo = true;
 }
