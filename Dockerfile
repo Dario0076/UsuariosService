@@ -1,28 +1,25 @@
 # Dockerfile para microservicio Spring Boot - Optimizado para Render
 FROM openjdk:17-jdk-slim
 
-# Instalar curl para health checks
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# Instalar Maven y curl
+RUN apt-get update && \
+    apt-get install -y curl maven && \
+    rm -rf /var/lib/apt/lists/*
 
 # Establecer directorio de trabajo
 WORKDIR /app
 
 # Copiar archivos de configuración de Maven primero (para cache de dependencias)
 COPY pom.xml .
-COPY .mvn .mvn
-COPY mvnw .
-
-# Hacer ejecutable el wrapper de Maven
-RUN chmod +x ./mvnw
 
 # Descargar dependencias (se cachea si pom.xml no cambia)
-RUN ./mvnw dependency:go-offline -B
+RUN mvn dependency:go-offline -B
 
 # Copiar código fuente
 COPY src ./src
 
 # Construir la aplicación
-RUN ./mvnw clean package -DskipTests
+RUN mvn clean package -DskipTests
 
 # Exponer puerto (Render usa PORT como variable de entorno)
 EXPOSE 8083
