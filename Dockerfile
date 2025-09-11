@@ -1,8 +1,14 @@
 # Dockerfile para microservicio Spring Boot
 FROM openjdk:17-jdk
+
+# Instalar Maven
+RUN apt-get update && apt-get install -y maven
+
 WORKDIR /app
 COPY . .
-RUN chmod +x mvnw
-RUN ./mvnw clean package -DskipTests
+
+# Usar Maven instalado en lugar del wrapper
+RUN mvn clean package -DskipTests
+
 EXPOSE 8083
 ENTRYPOINT ["java", "-jar", "target/UsuariosService-0.0.1-SNAPSHOT.jar"]
