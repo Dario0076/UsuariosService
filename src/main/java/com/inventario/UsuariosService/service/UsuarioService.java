@@ -9,6 +9,10 @@ import java.util.Optional;
 
 @Service
 public class UsuarioService {
+    // Devuelve todos los usuarios, activos e inactivos
+    public List<Usuario> getAllUsuariosIncluyendoInactivos() {
+        return usuarioRepository.findAll();
+    }
     private final UsuarioRepository usuarioRepository;
 
     public UsuarioService(UsuarioRepository usuarioRepository) {
@@ -37,12 +41,7 @@ public class UsuarioService {
     }
 
     public void deleteUsuario(Long id) {
-        Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
-        if (usuarioOpt.isPresent()) {
-            Usuario usuario = usuarioOpt.get();
-            usuario.setActivo(false);
-            usuarioRepository.save(usuario);
-        }
+        usuarioRepository.deleteById(id);
     }
 
     public Optional<Usuario> buscarPorCorreo(String correo) {
